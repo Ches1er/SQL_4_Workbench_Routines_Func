@@ -40,3 +40,99 @@ File->Export
 
     Создание хранимых процедур.
 
+Хранимая процедура - набор действий, которые можно осуществлять по требованию.
+Процедура - независимая, функция получает данные и возвращает данные.
+
+CREATE PROCEDURE. Полный синтаксис команды тут:
+https://dev.mysql.com/doc/refman/8.0/en/create-procedure.html
+
+Пример хранимой процедуры:
+При описании процедур, их команды завершаются ";"
+Поэтому необходимо переустановить указатель окончания команды:
+DELIMITER //
+CREATE PROCEDURE `create user` (`name` VARCHAR(255),`pass`VARCHAR(255))
+BEGIN - для группировки команд в одну
+INSERT INTO `users` (`login`,`pass`) VALUES (`name`,`pass`);
+END //
+DELIMITER ;
+
+Вызываем процедуру:
+CALL `create user` (`vasiliy`,`555`);
+
+Внутри процедур доступны различные операторы (условные, циклы и пр.)
+Вставим 10 пользователей, в конце у которых будут разные цифры.
+DELIMITER //
+CREATE PROCEDURE `ins`()
+BEGIN
+ DECLARE i INT DEFAULT 0; - объявляем переменную со стартовым значением 0
+ WHILE i<10 DO
+    INSERT INTO `users` (`login`,`pass`) VALUES (CONCAT('vasia',i),'1111');
+    SET i=i+1;
+ END WHILE;
+END //
+DELIMITER ;
+
+Есть еще конструкция цикла (аналог do while)
+REPEAT
+statement
+UNTIL condition;
+END REPEAT;
+
+IF condition THEN
+statement
+[ELSEIF condition THEN statement]
+[ELSE statement]
+END IF
+
+CASE i
+    WHEN 1 THEN statement;
+    WHEN 2 THEN statement;
+    ELSE statement;
+END CASE;
+
+CASE можн оприменять даже в запросах.
+SELECT CASE login WHEN 'ivan' THEN 'ivan01' ELSE login END FROM users;
+
+SHOW CREATE PROCEDURE `ins` - можно увидеть процедуру изнутри.
+
+        Функции
+
+DELIMITER //
+CREATE FUNCTION smm (a INT,b INT) RETURNS INT BEGIN
+    RETURN a+b;
+END //
+DELIMITER ;
+
+SELECT smm(1,5);
+
+        Тригеры
+
+Функция которая срабатывает при каком-либо событии. Используется для контроля
+каких либо событий, например изменений в каких-либо таблицах.
+BEFORE INSERT - сначала срабатывает тригер, потом запись вставляется в таблицу.
+
+        Самостоятельно
+
+use publishing_company;
+
+DELIMITER //
+CREATE FUNCTION `profit` (a INT) returns float begin
+	RETURN (SELECT (SELECT `price` FROM books WHERE `id_book`=a)*(SELECT SUM(`qty`) FROM sales WHERE `id_book`=a GROUP BY `id_book`));
+END //
+
+CREATE PROCEDURE `add_author`(`First_Name` VARCHAR(255),`Last_Name` VARCHAR(255),`id_country` INT)
+begin
+INSERT INTO `authors` (`First_Name`,`Last_Name`,`id_country`) VALUES (`First_Name`,`Last_Name`,`id_country`);
+END //
+DELIMITER ;
+
+SELECT profit(3);
+CALL add_author('Sam','Simon','2');
+
+
+
+
+
+
+
+
